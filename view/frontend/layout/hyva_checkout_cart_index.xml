@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2025 BlueFairy. All rights reserved.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!--
+            A CONTAINER, NOT checkout.cart.form.
+
+            The block is not added as a child of `checkout.cart.form`.
+            That block's template, Magento_Checkout::cart/form.phtml, emits exactly three
+            named children - form_before, checkout.cart.order.actions and
+            shopping.cart.table.after - and nothing else, so a child under any other name
+            is built and then silently dropped, and Magento reports nothing.
+
+            checkout.cart.form.before is a container, so it renders whatever is put in it,
+            and it exists in both the core and the Hyva cart layouts.
+        -->
+        <referenceContainer name="checkout.cart.form.before">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="bluefairy.ordercomments.cart"
+                   template="BlueFairy_OrderCommentsHyva::cart/order-comment.phtml"
+                   after="-">
+                <arguments>
+                    <argument name="view_model"
+                              xsi:type="object">BlueFairy\OrderComments\Model\Config\ConfigProvider</argument>
+                    <!--
+                        The value the quote currently holds, so the field renders showing it.
+                        A field that renders empty while a value is stored DELETES that value
+                        at the payment step, because an empty field means "cleared". Both pages are cacheable="false" in Magento_Checkout, so a
+                        per-shopper value is safe here.
+                    -->
+                    <argument name="comment_values"
+                              xsi:type="object">BlueFairy\OrderComments\Model\Quote\CurrentComment</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

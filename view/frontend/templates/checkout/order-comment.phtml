@@ -1,0 +1,135 @@
+<?php
+
+/**
+ * Copyright © 2026 Blue Fairy Development. All rights reserved.
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \BlueFairy\OrderComments\Model\Config\ConfigProvider $viewModel
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+declare(strict_types=1);
+
+/** @var \BlueFairy\OrderComments\Model\Config\ConfigProvider $viewModel */
+$viewModel = $block->getData('view_model');
+
+/*
+ * What the quote already holds. The Alpine state below seeds from this rather than from '',
+ * because an empty field means "the shopper cleared it" to the server - so a
+ * field that renders empty while a value is stored deletes that value.
+ */
+/**
+ * NULL-SAFE ON PURPOSE. This template takes TWO layout arguments, and a
+ * merchant layout override that redeclares this block without `comment_values` would otherwise fatal the
+ * whole checkout page on `getDropdown() on null`. Our own layout always supplies it - there is a
+ * test asserting that - so the fallback is for third-party overrides only, and an unseeded
+ * field is a smaller failure than a dead page.
+ *
+ * @var \BlueFairy\OrderComments\Model\Quote\CurrentComment|null $commentValues
+ */
+$commentValues = $block->getData('comment_values');
+$currentDropdown = $commentValues?->getDropdown() ?? '';
+$currentText     = $commentValues?->getText() ?? '';
+
+if (!$viewModel->isEnabled()) {
+    return;
+}
+
+$dropdownEnabled  = $viewModel->isDropdownEnabled();
+$dropdownRequired = $viewModel->isDropdownRequired();
+$dropdownLabel    = $viewModel->getDropdownLabel();
+$dropdownPlaceholder = $viewModel->getDropdownPlaceholder();
+$dropdownValues   = $viewModel->getDropdownValues();
+$textEnabled      = $viewModel->isTextEnabled();
+$textRequired     = $viewModel->isTextRequired();
+$textLabel        = $viewModel->getTextLabel();
+$charLimit        = $viewModel->getCharLimit();
+
+if (!$dropdownEnabled && !$textEnabled) {
+    return;
+}
+?>
+<script>
+function blueFairyOrderComment() {
+    return {
+        commentDropdown: '<?= $escaper->escapeJs($currentDropdown) ?>',
+        commentText: '<?= $escaper->escapeJs($currentText) ?>',
+        dropdownEnabled: <?= /* @noEscape */ ($dropdownEnabled && count($dropdownValues) > 0) ? 'true' : 'false' ?>,
+        dropdownRequired: <?= /* @noEscape */ $dropdownRequired ? 'true' : 'false' ?>,
+        dropdownLabel: '<?= $escaper->escapeJs($dropdownLabel) ?>',
+        dropdownPlaceholder: '<?= $escaper->escapeJs($dropdownPlaceholder) ?>',
+        dropdownValues: <?= /* @noEscape */ json_encode(array_map(
+            static fn (array $row): array => [
+                'value' => $row['value'] ?? '',
+                'label' => $row['label'] ?? '',
+            ],
+            $dropdownValues
+        ), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>,
+        textEnabled: <?= /* @noEscape */ $textEnabled ? 'true' : 'false' ?>,
+        textRequired: <?= /* @noEscape */ $textRequired ? 'true' : 'false' ?>,
+        textLabel: '<?= $escaper->escapeJs($textLabel) ?>',
+        charLimit: <?= /* @noEscape */ $charLimit ?>,
+        get remainingChars() {
+            if (this.charLimit <= 0) return null;
+            return this.charLimit - this.commentText.length;
+        },
+        init() {
+            const handler = (event) => {
+                if (!event.detail || !event.detail.paymentMethod) return;
+                if (!event.detail.paymentMethod.extension_attributes) {
+                    event.detail.paymentMethod.extension_attributes = {};
+                }
+                event.detail.paymentMethod.extension_attributes.order_comment_dropdown = this.commentDropdown;
+                event.detail.paymentMethod.extension_attributes.order_comment_text = this.commentText;
+            };
+            window.addEventListener('checkout:payment:before-submit', handler);
+            this.$cleanup(() => window.removeEventListener('checkout:payment:before-submit', handler));
+        }
+    };
+}
+</script>
+
+<div x-data="blueFairyOrderComment()"
+     class="bluefairy-order-comment">
+
+    <template x-if="dropdownEnabled && dropdownValues.length > 0">
+        <div class="field order-comment-dropdown">
+            <label class="label" for="order_comment_dropdown">
+                <span x-text="dropdownLabel"></span>
+            </label>
+            <div class="control">
+                <select id="order_comment_dropdown"
+                        name="order_comment_dropdown"
+                        class="form-select"
+                        x-model="commentDropdown"
+                        :required="dropdownRequired">
+                    <option value="" x-text="dropdownPlaceholder"></option>
+                    <template x-for="option in dropdownValues" :key="option.value">
+                        <option :value="option.value" x-text="option.label"></option>
+                    </template>
+                </select>
+            </div>
+        </div>
+    </template>
+
+    <template x-if="textEnabled">
+        <div class="field order-comment-text">
+            <label class="label" for="order_comment_text">
+                <span x-text="textLabel"></span>
+            </label>
+            <div class="control">
+                <textarea id="order_comment_text"
+                          name="order_comment_text"
+                          class="form-textarea"
+                          x-model="commentText"
+                          :required="textRequired"
+                          :maxlength="charLimit > 0 ? charLimit : null"
+                          placeholder="<?= $escaper->escapeHtmlAttr(__('Add any special instructions...')) ?>"></textarea>
+                <template x-if="charLimit > 0">
+                    <span class="order-comment-counter"
+                          x-text="remainingChars + ' <?= $escaper->escapeHtml(__('characters remaining')) ?>'"></span>
+                </template>
+            </div>
+        </div>
+    </template>
+</div>

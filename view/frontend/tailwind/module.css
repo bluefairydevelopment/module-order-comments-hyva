@@ -1,0 +1,28 @@
+/**
+ * Copyright © 2026 Blue Fairy Development. All rights reserved.
+ *
+ * Tailwind source registration for BlueFairy_OrderCommentsHyva.
+ *
+ * Hyvä's Tailwind build scans the theme, not this module. The theme uses
+ * `@import "tailwindcss" source(none)` with explicit @source globs, and
+ * `npx hyva-sources` discovers this file only for modules listed in
+ * app/etc/hyva-themes.json — which is what the observer in this module puts it
+ * there for. Without both halves, every utility that appears only in these
+ * templates is absent from the compiled CSS and the element renders as though
+ * the class were never written: no console error, no 404, nothing in a log.
+ *
+ * Whether it currently LOOKS broken depends on whether the theme happens to use
+ * the same utilities elsewhere. That is luck, and it changes the next time the
+ * theme's markup changes.
+ *
+ * Every class in these two templates is written literally in a class="…"
+ * attribute — checked, no :class, no x-bind:class, no classList, no template
+ * literal — so the glob below is sufficient and no @source inline() entries are
+ * needed. A module that composes class names inside Alpine expressions would
+ * need them; this module does not.
+ *
+ * After installing or upgrading this module the merchant must rebuild the
+ * theme's CSS (`npm run build` in the theme's web/tailwind directory).
+ */
+
+@source "../templates/**/*.phtml";

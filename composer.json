@@ -1,0 +1,23 @@
+{
+    "name": "bluefairy/module-order-comments-hyva",
+    "description": "BlueFairy Order Comments \u2014 Hyva Checkout companion module",
+    "type": "magento2-module",
+    "license": "proprietary",
+    "require": {
+        "php": "~8.3.0 || ~8.4.0 || ~8.5.0",
+        "bluefairy/module-order-comments": "^1.2.1",
+        "magento/framework": "~103.0.8",
+        "hyva-themes/magento2-theme-module": "^1.5"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "BlueFairy\\OrderCommentsHyva\\": ""
+        }
+    },
+    "suggest": {
+        "hyva-themes/magento2-hyva-checkout": "This package's checkout layout adds the comment fields to the block hyva.checkout.payment.method.list."
+    }
+}

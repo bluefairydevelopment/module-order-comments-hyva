@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2025 BlueFairy. All rights reserved.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="hyva.checkout.payment.method.list">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="bluefairy.ordercomments.hyva.checkout"
+                   template="BlueFairy_OrderCommentsHyva::checkout/order-comment.phtml"
+                   after="-">
+                <arguments>
+                    <argument name="view_model"
+                              xsi:type="object">BlueFairy\OrderComments\Model\Config\ConfigProvider</argument>
+                    <!--
+                        The value the quote currently holds, so the field renders showing it.
+                        A field that renders empty while a value is stored DELETES that value
+                        at the payment step, because an empty field means "cleared". Both pages are cacheable="false" in Magento_Checkout, so a
+                        per-shopper value is safe here.
+                    -->
+                    <argument name="comment_values"
+                              xsi:type="object">BlueFairy\OrderComments\Model\Quote\CurrentComment</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+    </body>
+</page>

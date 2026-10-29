@@ -1,0 +1,210 @@
+<?php
+
+/**
+ * Copyright © 2026 Blue Fairy Development. All rights reserved.
+ *
+ * Order comment fields for the cart page (Hyva / Alpine.js).
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \BlueFairy\OrderComments\Model\Config\ConfigProvider $viewModel
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+declare(strict_types=1);
+
+/** @var \BlueFairy\OrderComments\Model\Config\ConfigProvider $viewModel */
+$viewModel = $block->getData('view_model');
+
+/*
+ * What the quote already holds. The Alpine state below seeds from this rather than from '',
+ * because an empty field means "the shopper cleared it" to the server - so a
+ * field that renders empty while a value is stored deletes that value.
+ */
+/**
+ * NULL-SAFE ON PURPOSE. This template takes TWO layout arguments, and a
+ * merchant layout override that redeclares this block without `comment_values` would otherwise fatal the
+ * whole cart page on `getDropdown() on null`. Our own layout always supplies it - there is a
+ * test asserting that - so the fallback is for third-party overrides only, and an unseeded
+ * field is a smaller failure than a dead page.
+ *
+ * @var \BlueFairy\OrderComments\Model\Quote\CurrentComment|null $commentValues
+ */
+$commentValues = $block->getData('comment_values');
+$currentDropdown = $commentValues?->getDropdown() ?? '';
+$currentText     = $commentValues?->getText() ?? '';
+
+/*
+ * THE THEME GATE IS THE LAYOUT FILE'S NAME, not anything in here.
+ *
+ * checkout.cart.form.before exists in the core cart layout as well as the Hyva one, so while
+ * a layout file is named checkout_cart_index.xml it merges into EVERY frontend
+ * theme - and on a store serving Luma from a second store view this Alpine markup rendered
+ * into a theme with no Alpine to interpret x-data. A comment box that looks present and does
+ * nothing.
+ *
+ * The file is hyva_checkout_cart_index.xml. Hyva\Theme\Observer\AddLayoutHandles adds
+ * the hyva_-prefixed handle only when a Hyva theme is active, so this file cannot reach a
+ * non-Hyva theme at all. That is the usual way to scope a Hyva layout file.
+ *
+ * The obvious alternative - passing Hyva\Theme\Service\CurrentTheme in as a layout argument
+ * - is NOT available: layout arguments are constructed while the layout structure is being
+ * built, and resolving the design theme there re-enters layout generation and 500s the entire
+ * cart page. Do not reintroduce it.
+ */
+
+/*
+ * BOTH switches, not just isShowOnCart(). system.xml declares show_on_cart as depending on
+ * enabled, but `depends` only hides the field in the admin form - it does not clear the
+ * stored value. A store that had the feature on and later set "Enable Order Comments" to No
+ * keeps show_on_cart = 1, and this template would still render the fields. All five order
+ * write paths check isEnabled() and refuse, so without this gate the shopper would type a
+ * fulfilment instruction that nothing can carry and nothing says so. The Hyva CHECKOUT template
+ * gates on isEnabled() as well.
+ */
+if (!$viewModel->isEnabled() || !$viewModel->isShowOnCart()) {
+    return;
+}
+
+$dropdownEnabled  = $viewModel->isDropdownEnabled();
+$dropdownRequired = $viewModel->isDropdownRequired();
+$dropdownLabel    = $viewModel->getDropdownLabel();
+$dropdownPlaceholder = $viewModel->getDropdownPlaceholder();
+$dropdownValues   = $viewModel->getDropdownValues();
+$textEnabled      = $viewModel->isTextEnabled();
+$textRequired     = $viewModel->isTextRequired();
+$textLabel        = $viewModel->getTextLabel();
+$charLimit        = $viewModel->getCharLimit();
+
+if (!$dropdownEnabled && !$textEnabled) {
+    return;
+}
+
+$saveUrl = $block->getUrl('bluefairy_ordercomments/cart/saveComment');
+?>
+<script>
+function blueFairyCartOrderComment() {
+    return {
+        commentDropdown: '<?= $escaper->escapeJs($currentDropdown) ?>',
+        commentText: '<?= $escaper->escapeJs($currentText) ?>',
+        saveTimer: null,
+        saving: false,
+        saved: false,
+        error: false,
+        dropdownEnabled: <?= /* @noEscape */ ($dropdownEnabled && count($dropdownValues) > 0) ? 'true' : 'false' ?>,
+        dropdownRequired: <?= /* @noEscape */ $dropdownRequired ? 'true' : 'false' ?>,
+        dropdownLabel: '<?= $escaper->escapeJs($dropdownLabel) ?>',
+        dropdownPlaceholder: '<?= $escaper->escapeJs($dropdownPlaceholder) ?>',
+        dropdownValues: <?= /* @noEscape */ json_encode(array_map(
+            static fn (array $row): array => [
+                'value' => $row['value'] ?? '',
+                'label' => $row['label'] ?? '',
+            ],
+            $dropdownValues
+        ), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>,
+        textEnabled: <?= /* @noEscape */ $textEnabled ? 'true' : 'false' ?>,
+        textRequired: <?= /* @noEscape */ $textRequired ? 'true' : 'false' ?>,
+        textLabel: '<?= $escaper->escapeJs($textLabel) ?>',
+        charLimit: <?= /* @noEscape */ $charLimit ?>,
+        saveUrl: '<?= $escaper->escapeJs($escaper->escapeUrl($saveUrl)) ?>',
+        get remainingChars() {
+            if (this.charLimit <= 0) return null;
+            return this.charLimit - this.commentText.length;
+        },
+        init() {
+            this.$cleanup(() => {
+                if (this.saveTimer !== null) clearTimeout(this.saveTimer);
+            });
+        },
+        saveComment() {
+            clearTimeout(this.saveTimer);
+            this.saveTimer = setTimeout(() => {
+                this.saving = true;
+                this.saved = false;
+                this.error = false;
+                const body = new FormData();
+                body.append('form_key', hyva.getFormKey());
+                body.append('order_comment_dropdown', this.commentDropdown);
+                body.append('order_comment_text', this.commentText);
+                fetch(this.saveUrl, { method: 'POST', body: body })
+                    .then(r => r.json())
+                    .then(data => {
+                        this.saving = false;
+                        if (data.success) {
+                            this.saved = true;
+                            setTimeout(() => this.saved = false, 2000);
+                        } else {
+                            this.error = true;
+                            setTimeout(() => this.error = false, 3000);
+                        }
+                    })
+                    .catch(() => {
+                        this.saving = false;
+                        this.error = true;
+                        setTimeout(() => this.error = false, 3000);
+                    });
+            }, 800);
+        }
+    };
+}
+</script>
+
+<div x-data="blueFairyCartOrderComment()"
+     class="bluefairy-order-comment mt-6 mb-6 p-5 bg-white border border-gray-300 rounded-lg">
+
+    <?php if ($dropdownEnabled || $textEnabled): ?>
+    <h3 class="text-lg font-semibold text-gray-800 mb-3">
+        <?= $escaper->escapeHtml(__('Order Comments')) ?>
+    </h3>
+    <?php endif; ?>
+
+    <template x-if="dropdownEnabled && dropdownValues.length > 0">
+        <div class="field order-comment-dropdown mb-4">
+            <label class="label block mb-1 text-sm font-medium text-gray-700"
+                   for="cart_order_comment_dropdown">
+                <span x-text="dropdownLabel"></span>
+            </label>
+            <div class="control">
+                <select id="cart_order_comment_dropdown"
+                        name="order_comment_dropdown"
+                        class="form-select w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                        x-model="commentDropdown"
+                        @change="saveComment()"
+                        :required="dropdownRequired">
+                    <option value="" x-text="dropdownPlaceholder"></option>
+                    <template x-for="option in dropdownValues" :key="option.value">
+                        <option :value="option.value" x-text="option.label"></option>
+                    </template>
+                </select>
+            </div>
+        </div>
+    </template>
+
+    <template x-if="textEnabled">
+        <div class="field order-comment-text">
+            <label class="label block mb-1 text-sm font-medium text-gray-700"
+                   for="cart_order_comment_text">
+                <span x-text="textLabel"></span>
+            </label>
+            <div class="control">
+                <textarea id="cart_order_comment_text"
+                          name="order_comment_text"
+                          rows="3"
+                          class="form-textarea w-full border border-gray-300 rounded-md px-3 py-2 text-sm resize-y"
+                          x-model="commentText"
+                          @input="saveComment()"
+                          :required="textRequired"
+                          :maxlength="charLimit > 0 ? charLimit : null"
+                          placeholder="<?= $escaper->escapeHtmlAttr(__('Add any special instructions or notes for your order...')) ?>"></textarea>
+                <div class="flex justify-between mt-1" aria-live="polite">
+                    <template x-if="charLimit > 0">
+                        <span class="text-xs text-gray-400"
+                              x-text="remainingChars + ' <?= $escaper->escapeHtml(__('characters remaining')) ?>'"></span>
+                    </template>
+                    <span x-show="saving" class="text-xs text-gray-400"><?= $escaper->escapeHtml(__('Saving...')) ?></span>
+                    <span x-show="saved" x-transition class="text-xs text-green-600"><?= $escaper->escapeHtml(__('Saved')) ?></span>
+                    <span x-show="error" x-transition class="text-xs text-red-600"><?= $escaper->escapeHtml(__('Could not save. Please try again.')) ?></span>
+                </div>
+            </div>
+        </div>
+    </template>
+</div>
