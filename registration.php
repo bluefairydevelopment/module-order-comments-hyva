@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright © 2026 Blue Fairy Development. All rights reserved.
+ * Copyright (c) 2026 Blue Fairy Development LLC. MIT licence; see LICENSE.txt.
  */
 
 declare(strict_types=1);

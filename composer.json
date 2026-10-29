@@ -2,7 +2,9 @@
     "name": "bluefairy/module-order-comments-hyva",
     "description": "BlueFairy Order Comments \u2014 Hyva Checkout companion module",
     "type": "magento2-module",
-    "license": "proprietary",
+    "license": [
+        "MIT"
+    ],
     "require": {
         "php": "~8.3.0 || ~8.4.0 || ~8.5.0",
         "bluefairy/module-order-comments": "^1.2.1",

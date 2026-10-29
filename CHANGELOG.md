@@ -1,5 +1,13 @@
 # Changelog — BlueFairy_OrderCommentsHyva
 
+## 1.2.2 — 2026-10-28
+
+### Changed
+- **This package is now free and open source, under the MIT licence.** `LICENSE.txt` is the MIT licence and `composer.json` declares `MIT`. Nothing in the code changes. The core package it extends, `bluefairy/module-order-comments`, keeps its own licence.
+- It is now published from its own repository and installs from packagist.org: `composer require bluefairy/module-order-comments-hyva`.
+- Adds a README: what the package does, its requirements (the Order Comments base module `^1.2.1` and the Hyvä theme), installation and licence.
+- Every file's copyright notice now points to the MIT licence instead of reserving all rights.
+
 ## 1.2.1 — 2026-10-15
 
 Follows the core package, `BlueFairy_OrderComments` 1.2.1. The Hyvä fields carry the `required` attribute, and the core package also enforces it on the server.

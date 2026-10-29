@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © 2025 BlueFairy. All rights reserved.
+ * Copyright (c) 2026 Blue Fairy Development LLC. MIT licence; see LICENSE.txt.
  */
 -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -18,8 +18,8 @@
                     <!--
                         The value the quote currently holds, so the field renders showing it.
                         A field that renders empty while a value is stored DELETES that value
-                        at the payment step, because an empty field means "cleared". Both pages are cacheable="false" in Magento_Checkout, so a
-                        per-shopper value is safe here.
+                        at the payment step, because an empty field means "cleared". Both pages are
+                        cacheable="false" in Magento_Checkout, so a per-shopper value is safe here.
                     -->
                     <argument name="comment_values"
                               xsi:type="object">BlueFairy\OrderComments\Model\Quote\CurrentComment</argument>

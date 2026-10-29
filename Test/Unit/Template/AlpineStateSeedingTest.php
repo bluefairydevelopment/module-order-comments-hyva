@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright © 2026 Blue Fairy Development. All rights reserved.
+ * Copyright (c) 2026 Blue Fairy Development LLC. MIT licence; see LICENSE.txt.
  */
 
 declare(strict_types=1);
@@ -23,8 +23,7 @@ use PHPUnit\Framework\TestCase;
  * so a field always rendered empty however much the quote held. Because an empty field
  * means "the shopper cleared this", an unseeded field DELETES a comment entered on the cart
  * page the moment the payment step opens.
- *
- * These are also the first tests this package has ever had.
+
  */
 class AlpineStateSeedingTest extends TestCase
 {
