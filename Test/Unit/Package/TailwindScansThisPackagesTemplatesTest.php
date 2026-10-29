@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright © 2026 Blue Fairy Development. All rights reserved.
+ * Copyright (c) 2026 Blue Fairy Development LLC. MIT licence; see LICENSE.txt.
  */
 
 declare(strict_types=1);
@@ -16,8 +16,8 @@ use PHPUnit\Framework\TestCase;
  * declares an `@source` glob over its templates.
  *
  * Without it the store's stylesheet has no rule for the classes this package's
- * templates use: the required asterisks are not red, buttons lose their padding and
- * field spacing goes - with no console error and no 404.
+ * templates use: the comment panel loses its padding, border and field spacing, and
+ * the character counter its colour states - with no console error and no 404.
  *
  * Nothing else in this package's gates can see this. phpcs and phpstan do not read
  * CSS; phpunit is green either way; the storefront returns 200 with the right
@@ -59,8 +59,7 @@ class TailwindScansThisPackagesTemplatesTest extends TestCase
         // then reports the package's own templates as uncovered. It did exactly
         // that on the first run - a red from the instrument, dressed as a red from
         // the subject. testTheStripperDoesNotEatAGlobstarPath is the control.
-        // A comment may open with `/*` as well as `/**`: strip
-        // either opener, but only when it is followed by whitespace - `/**/` inside a
+        // Strip either opener, but only when it is followed by whitespace - `/**/` inside a
         // globstar path is followed by `/`, and survives.
         return (string) preg_replace('!/\*\*?(?=\s)[\s\S]*?\*/!', '', $css);
     }
@@ -178,8 +177,7 @@ class TailwindScansThisPackagesTemplatesTest extends TestCase
     /**
      * Colour utilities in $tokens that core Tailwind does not define. 1.1.1's cart panel used
      * `bg-container-lighter` / `border-container-lighter`. Hyvä's default theme defines `container-*` only
-     * in its deprecated fallback.css, and a child theme that does not import that file (Blue/bluefairy is
-     * one) has no rule for them. The panel then rendered with no background or border colour, and nothing
+     * in its deprecated fallback.css, and a child theme that does not import that file has no rule for them. The panel then rendered with no background or border colour, and nothing
      * reported an error. A module sold for any Hyvä theme may use only colours every Tailwind build has.
      *
      * @param list<string> $tokens

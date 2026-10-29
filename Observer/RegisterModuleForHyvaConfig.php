@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright © 2026 Blue Fairy Development. All rights reserved.
+ * Copyright (c) 2026 Blue Fairy Development LLC. MIT licence; see LICENSE.txt.
  */
 
 declare(strict_types=1);
@@ -20,7 +20,7 @@ use Magento\Framework\Event\ObserverInterface;
  * view/frontend/tailwind/module.css and the templates it points at, so the utility
  * classes used only in this module survive the theme build.
  *
- * Without this, the order-comment fields on the cart and checkout pages lose every
+ * Without this, the cart-page comment panel loses every
  * utility that appears nowhere else in the theme — spacing, borders, the character
  * counter's colour states — and render unstyled. Silently: no console error, no 404.
  *

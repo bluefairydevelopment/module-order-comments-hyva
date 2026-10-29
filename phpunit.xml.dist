@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Unit tests for bluefairy/module-order-comments-hyva.
+
+    Run from the package root, with MAGENTO_ROOT pointing at any Magento
+    installation whose vendor/ carries the framework:
+
+        MAGENTO_ROOT=/path/to/magento \
+            /path/to/magento/vendor/bin/phpunit -c phpunit.xml.dist
+
+    The bootstrap is Test/bootstrap.php, not Magento's own
+    dev/tests/unit/framework/bootstrap.php, which resolves only for a module at
+    app/code/BlueFairy/<Name>; this package lives in vendor/.
+    Test/Integration is deliberately NOT in the suite: it needs Magento's
+    integration framework and a database, not a mocked one.
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.6/phpunit.xsd"
+         bootstrap="Test/bootstrap.php"
+         colors="true"
+         beStrictAboutTestsThatDoNotTestAnything="true"
+         failOnWarning="true"
+         failOnRisky="true">
+    <testsuites>
+        <testsuite name="BlueFairy_OrderCommentsHyva">
+            <directory>Test/Unit</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
